@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本代購毛利率計算機</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .input-group {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .input-field {
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #007AFF;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .results {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .results h2 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .results h3 {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .highlight {
+            background-color: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .converted-price {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #f0f0f0;
+            padding: 0.5rem;
+            border-radius: 4px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .reference-tables {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>日本代購毛利率計算機</h1>
+    
+    <div class="input-group">
+        <div class="input-field">
+            <label for="originalPrice">商品原價 (日幣)</label>
+            <input type="number" id="originalPrice" oninput="updateConvertedPrice()">
+            <span id="convertedPrice" class="converted-price"></span>
+        </div>
+
+        <div class="input-field">
+            <label for="exchangeRate">即時匯率 (台幣/日幣)</label>
+            <input type="number" id="exchangeRate" step="0.001" oninput="updateConvertedPrice()">
+        </div>
+
+        <div class="input-field">
+            <div class="checkbox-item">
+                <input type="checkbox" id="consumptionTaxCheck">
+                <label for="consumptionTaxCheck">日本消費稅 (10%)</label>
+            </div>
+        </div>
+
+        <div class="input-field">
+            <label for="estimatedPrice">預估售價 (台幣)</label>
+            <input type="number" id="estimatedPrice">
+        </div>
+        
+        <div class="input-field">
+            <label for="weight">商品重量 (公斤)</label>
+            <input type="number" id="weight" step="0.1">
+        </div>
+
+        <div class="input-field">
+            <label for="internationalShipping">國際運費 (台幣/公斤)</label>
+            <input type="number" id="internationalShipping">
+        </div>
+        
+        <div class="input-field">
+            <label for="domesticShipping">境內運費、代金代訂手續費、多收1KG重量 (台幣)</label>
+            <input type="number" id="domesticShipping">
+        </div>
+        
+        <div class="input-field">
+            <label for="shopeeDiscount">蝦皮自訂優惠 (台幣)</label>
+            <input type="number" id="shopeeDiscount">
+        </div>
+
+        <div class="input-field">
+            <label for="shopeeAds">蝦皮廣告費用 (台幣)</label>
+            <input type="number" id="shopeeAds">
+        </div>
+
+        <div class="input-field">
+            <label for="packagingCost">包材 (台幣)</label>
+            <input type="number" id="packagingCost">
+        </div>
+
+        <div class="input-field">
+            <label>選擇蝦皮手續費項目：</label>
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="shopeeEvent">
+                    <label for="shopeeEvent">A. 蝦皮檔期手續費</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="shopeeNormal">
+                    <label for="shopeeNormal">B. 蝦皮非檔期手續費</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="shopeeFreeShipping">
+                    <label for="shopeeFreeShipping">C. 蝦皮免運手續費</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="shopeePreOrder">
+                    <label for="shopeePreOrder">D. 蝦皮預購手續費</label>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="calculate()">計算</button>
+    </div>
+
+    <div class="results" id="results">
+        <div id="costDetails">
+            <h2>成本明細</h2>
+            <div id="costDetailsList"></div>
+        </div>
+        
+        <div id="profitAnalysis">
+            <h2>獲利分析</h2>
+            <div id="profitAnalysisList"></div>
+        </div>
+
+        <div id="suggestedPrice">
+            <h2>建議售價參考</h2>
+            <div id="suggestedPriceList"></div>
+        </div>
+        
+        <div id="referenceTable">
+            <h2>參考售價表</h2>
+            <div class="reference-tables">
+                <div id="marginReferenceList"></div>
+                <div id="netProfitReferenceList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateConvertedPrice() {
+            const originalPrice = parseFloat(document.getElementById('originalPrice').value) || 0;
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 0;
+            const convertedPrice = originalPrice * exchangeRate;
+            
+            const convertedPriceElement = document.getElementById('convertedPrice');
+            if (originalPrice && exchangeRate) {
+                convertedPriceElement.textContent = `≈ ${Math.round(convertedPrice).toLocaleString()} 台幣`;
+            } else {
+                convertedPriceElement.textContent = '';
+            }
+        }
+
+        function calculate() {
+            const originalPrice = parseFloat(document.getElementById('originalPrice').value) || 0;
+            const estimatedPrice = parseFloat(document.getElementById('estimatedPrice').value) || 0;
+            const actualPrice = estimatedPrice; 
+            const packagingCost = parseFloat(document.getElementById('packagingCost').value) || 0;
+            const weight = parseFloat(document.getElementById('weight').value) || 0;
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 0;
+            const domesticShipping = parseFloat(document.getElementById('domesticShipping').value) || 0;
+            const internationalShipping = parseFloat(document.getElementById('internationalShipping').value) || 0;
+            const shopeeDiscount = parseFloat(document.getElementById('shopeeDiscount').value) || 0;
+            const shopeeAds = parseFloat(document.getElementById('shopeeAds').value) || 0;
+            
+            // 計算日本消費稅
+            let taxAmount = 0;
+            if (document.getElementById('consumptionTaxCheck').checked) {
+                taxAmount = originalPrice * 0.1; // 10% tax
+            }
+            
+            const totalJPYPrice = originalPrice + taxAmount;
+            
+            // Calculate Shopee fees - 分開計算毛利率和淨利率項目
+            let shopeeGrossFees = 0;  // 毛利率項目
+            let shopeeNetFees = 0;    // 淨利率項目
+            
+            if (document.getElementById('shopeeEvent').checked) {
+                // 蝦皮檔期手續費：預估售價 (台幣)*7.5%+((預估售價 (台幣)+60)*2%)
+                const eventFee = (estimatedPrice * 0.075) + ((estimatedPrice + 60) * 0.02);
+                shopeeGrossFees += eventFee;
+            }
+            
+            if (document.getElementById('shopeeNormal').checked) {
+                // 蝦皮非檔期手續費：預估售價 (台幣)*5.5%+((預估售價 (台幣)+60)*2%)
+                const normalFee = (estimatedPrice * 0.055) + ((estimatedPrice + 60) * 0.02);
+                shopeeGrossFees += normalFee;
+            }
+            
+            if (document.getElementById('shopeePreOrder').checked) {
+                // 蝦皮預購手續費：預估售價 (台幣)*2%
+                const preOrderFee = estimatedPrice * 0.02;
+                shopeeGrossFees += preOrderFee;
+            }
+            
+            // 蝦皮免運手續費移到淨利率項目
+            if (document.getElementById('shopeeFreeShipping').checked) {
+                // 蝦皮免運手續費：預估售價 (台幣)*7%
+                const freeShippingFee = estimatedPrice * 0.07;
+                shopeeNetFees += freeShippingFee;
+            }
+            
+            // 轉換為台幣
+            const originalPriceTWD = originalPrice * exchangeRate;
+            const taxAmountTWD = taxAmount * exchangeRate;
+            const productCostTWD = totalJPYPrice * exchangeRate;
+            const domesticShippingTWD = domesticShipping; // 已經是台幣，不需要換算
+            const internationalShippingCost = weight * internationalShipping;
+            
+            // 計算毛利率的成本 (不包含蝦皮自訂優惠、蝦皮廣告費用、包材和蝦皮免運手續費)
+            const grossCost = productCostTWD + domesticShippingTWD + internationalShippingCost + shopeeGrossFees;
+            
+            // 計算淨利率的成本 (包含所有成本)
+            const totalCost = grossCost + shopeeDiscount + shopeeAds + packagingCost + shopeeNetFees;
+
+            // 計算毛利 (不包含蝦皮自訂優惠、蝦皮廣告費用、包材和蝦皮免運手續費)
+            const grossProfit = actualPrice - grossCost;
+            const grossProfitMargin = (grossProfit / actualPrice) * 100;
+
+            // 計算淨利 (包含所有成本)
+            const netProfit = actualPrice - totalCost;
+            const netProfitMargin = (netProfit / actualPrice) * 100;
+
+            // Calculate suggested price for 30% net profit margin
+            const targetNetProfitMargin = 0.30;
+            const suggestedPrice = totalCost / (1 - targetNetProfitMargin);
+
+            document.getElementById('results').style.display = 'block';
+            
+            // 成本明細
+            let costDetailsHTML = `
+                <div class="result-item">
+                    <span>商品原價</span>
+                    <span>${Math.round(originalPriceTWD).toLocaleString()} 台幣</span>
+                </div>`;
+                
+            if (document.getElementById('consumptionTaxCheck').checked) {
+                costDetailsHTML += `
+                <div class="result-item">
+                    <span>日本消費稅</span>
+                    <span>${Math.round(taxAmountTWD).toLocaleString()} 台幣</span>
+                </div>`;
+            }
+            
+            costDetailsHTML += `
+                <div class="result-item">
+                    <span>商品成本</span>
+                    <span>${Math.round(productCostTWD).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>境內運費、代金代訂手續費、多收1KG重量</span>
+                    <span>${Math.round(domesticShippingTWD).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>國際運費</span>
+                    <span>${Math.round(internationalShippingCost).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>蝦皮手續費 (毛利率項目)</span>
+                    <span>${Math.round(shopeeGrossFees).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item highlight">
+                    <span>毛利率計算總成本</span>
+                    <span>${Math.round(grossCost).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>蝦皮免運手續費</span>
+                    <span>${Math.round(shopeeNetFees).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>蝦皮自訂優惠</span>
+                    <span>${Math.round(shopeeDiscount).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>蝦皮廣告費用</span>
+                    <span>${Math.round(shopeeAds).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>包材</span>
+                    <span>${Math.round(packagingCost).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item highlight">
+                    <span>淨利率計算總成本</span>
+                    <span>${Math.round(totalCost).toLocaleString()} 台幣</span>
+                </div>
+            `;
+            
+            document.getElementById('costDetailsList').innerHTML = costDetailsHTML;
+            
+            document.getElementById('profitAnalysisList').innerHTML = `
+                <div class="result-item">
+                    <span>實際售價</span>
+                    <span>${Math.round(actualPrice).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>商品毛利</span>
+                    <span>${Math.round(grossProfit).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>毛利率</span>
+                    <span>${grossProfitMargin.toFixed(1)}%</span>
+                </div>
+                <div class="result-item">
+                    <span>淨利</span>
+                    <span>${Math.round(netProfit).toLocaleString()} 台幣</span>
+                </div>
+                <div class="result-item">
+                    <span>實際淨利率</span>
+                    <span>${netProfitMargin.toFixed(1)}%</span>
+                </div>
+            `;
+
+            document.getElementById('suggestedPriceList').innerHTML = `
+                <div class="result-item highlight">
+                    <span>建議售價 (達到30%淨利率)</span>
+                    <span>${Math.round(suggestedPrice).toLocaleString()} 台幣</span>
+                </div>
+            `;
+            
+            // Margin reference table
+            const margins = [20, 25, 30, 35, 40, 45, 50];
+            let marginHTML = '<h3>毛利率參考表</h3>';
+            margins.forEach(margin => {
+                const targetPrice = grossCost / (1 - margin/100);
+                marginHTML += `
+                    <div class="result-item">
+                        <span>${margin}% 毛利率之參考售價</span>
+                        <span>${Math.round(targetPrice).toLocaleString()} 台幣</span>
+                    </div>
+                `;
+            });
+            document.getElementById('marginReferenceList').innerHTML = marginHTML;
+
+            // Net profit reference table
+            const netProfits = [20, 25, 30, 35, 40, 45, 50];
+            let netProfitHTML = '<h3>淨利率參考表</h3>';
+            netProfits.forEach(netProfit => {
+                const targetPrice = totalCost / (1 - netProfit/100);
+                netProfitHTML += `
+                    <div class="result-item">
+                        <span>${netProfit}% 淨利率之參考售價</span>
+                        <span>${Math.round(targetPrice).toLocaleString()} 台幣</span>
+                    </div>
+                `;
+            });
+            document.getElementById('netProfitReferenceList').innerHTML = netProfitHTML;
+        }
+    </script>
+</body>
+</html>
