@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本代購毛利率計算機</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --accent: #e8401a;
+            --accent2: #f97316;
+            --text: #1a1a2e;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+            --highlight-bg: #fff7ed;
+            --highlight-border: #fed7aa;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px 16px 60px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .header-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            padding: 4px 12px;
+            border-radius: 999px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+        .header p {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-top: 6px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 16px;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Form fields */
+        .field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .field-grid.single { grid-template-columns: 1fr; }
+
+        @media (max-width: 500px) {
+            .field-grid { grid-template-columns: 1fr; }
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+        }
+        .field.full { grid-column: 1 / -1; }
+
+        label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-sub);
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'DM Mono', monospace;
+            color: var(--text);
+            background: #fafafa;
+            transition: border-color 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+        }
+
+        .converted-tag {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            font-size: 0.72rem;
+            font-family: 'DM Mono', monospace;
+            background: #fff3ef;
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        /* Category rate display */
+        .rate-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 0.82rem;
+            color: var(--text-sub);
+        }
+        .rate-badge {
+            background: var(--highlight-bg);
+            border: 1px solid var(--highlight-border);
+            color: var(--accent);
+            font-family: 'DM Mono', monospace;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        /* Checkbox group */
+        .checkbox-title {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        @media (max-width: 500px) {
+            .checkbox-grid { grid-template-columns: 1fr; }
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.82rem;
+            color: var(--text);
+        }
+        .check-item:has(input:checked) {
+            border-color: var(--accent);
+            background: #fff7f5;
+        }
+        .check-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        /* Section divider */
+        .section-gap { margin-top: 18px; }
+
+        /* Calculate button */
+        .calc-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Noto Sans TC', sans-serif;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 20px;
+        }
+        .calc-btn:hover { background: #c93515; }
+        .calc-btn:active { transform: scale(0.98); }
+
+        /* Results */
+        .results-wrap {
+            max-width: 720px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .result-section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .result-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.88rem;
+        }
+        .result-row:last-child { border-bottom: none; }
+        .result-row .label { color: var(--text-sub); }
+        .result-row .value {
+            font-family: 'DM Mono', monospace;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .result-row.highlight {
+            background: var(--highlight-bg);
+            border: 1px solid var(--highlight-border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin: 6px 0;
+        }
+        .result-row.highlight .label { color: var(--text); font-weight: 700; }
+        .result-row.highlight .value { color: var(--accent); font-weight: 700; }
+
+        /* KPI blocks */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+        .kpi-block {
+            background: var(--highlight-bg);
+            border: 1px solid var(--highlight-border);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+        .kpi-block .kpi-label {
+            font-size: 0.72rem;
+            color: var(--text-sub);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .kpi-block .kpi-value {
+            font-family: 'DM Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        .kpi-block .kpi-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+        .kpi-block.positive .kpi-value { color: var(--positive); }
+        .kpi-block.negative .kpi-value { color: var(--negative); }
+
+        /* Reference tables */
+        .ref-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 500px) { .ref-grid { grid-template-columns: 1fr; } }
+
+        .ref-sub-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent);
+            display: inline-block;
+        }
+
+        /* Select arrow */
+        .select-wrap {
+            position: relative;
+        }
+        .select-wrap::after {
+            content: '▾';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+            pointer-events: none;
+            font-size: 0.85rem;
+        }
+        .select-wrap select { padding-right: 32px; }
+
+        /* Tax checkbox inline */
+        .inline-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+        .inline-check:has(input:checked) {
+            border-color: var(--accent);
+            background: #fff7f5;
+        }
+        .inline-check input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-badge">🇯🇵 日本代購專用</div>
+    <h1>毛利率計算機</h1>
+    <p>輸入商品資訊，自動計算毛利率 / 淨利率與建議售價</p>
+</div>
+
+<!-- Section 1: 商品資訊 -->
+<div class="card">
+    <div class="card-title">商品資訊（對應進貨成本表）</div>
+    <div class="field-grid">
+        <div class="field" style="position:relative">
+            <label>進貨價格（日幣 JPY）</label>
+            <input type="number" id="originalPrice" placeholder="0" oninput="updateConvertedPrice()">
+            <span id="convertedPrice" class="converted-tag"></span>
+        </div>
+        <div class="field">
+            <label>匯率（台幣／日幣）</label>
+            <input type="number" id="exchangeRate" step="0.001" placeholder="0.210" oninput="updateConvertedPrice()">
+        </div>
+        <div class="field full">
+            <label class="inline-check" for="consumptionTaxCheck">
+                <input type="checkbox" id="consumptionTaxCheck" oninput="updateConvertedPrice()">
+                含日本消費稅（+10%）— 部分日本網站需自行加入
+            </label>
+        </div>
+        <div class="field">
+            <label>重量 kg／件</label>
+            <input type="number" id="weight" step="0.001" placeholder="0.000" oninput="updateConvertedPrice()">
+        </div>
+        <div class="field">
+            <label>國際運費（台幣／公斤）</label>
+            <input type="number" id="internationalShipping" placeholder="220" oninput="updateConvertedPrice()">
+        </div>
+        <div class="field">
+            <label>系統費用 + 台灣運費（台幣）</label>
+            <input type="number" id="domesticShipping" placeholder="0" oninput="updateConvertedPrice()">
+        </div>
+        <div class="field">
+            <label style="color:var(--accent);font-weight:700">總成本預覽</label>
+            <div id="totalCostPreview" style="padding:10px 12px;border:1.5px solid var(--highlight-border);border-radius:8px;background:var(--highlight-bg);font-family:'DM Mono',monospace;font-size:0.95rem;color:var(--accent);font-weight:700">
+                — 元
+            </div>
+        </div>
+    </div>
+    <div style="margin-top:12px;padding:8px 12px;background:#f8f9fa;border-radius:8px;font-size:0.75rem;color:var(--text-sub);">
+        總成本 = 進貨價(JPY) × 匯率 × (含稅則×1.1) + 系統費用+台灣運費 + 重量 × 國際運費
+    </div>
+</div>
+
+<!-- Section 2: 售價設定 -->
+<div class="card">
+    <div class="card-title">售價設定</div>
+    <div class="field-grid">
+        <div class="field">
+            <label>設定售價（台幣）</label>
+            <input type="number" id="estimatedPrice" placeholder="0" oninput="updateDiscountedPreview()">
+        </div>
+    </div>
+</div>
+
+<!-- Section 3: 蝦皮費用 -->
+<div class="card">
+    <div class="card-title">蝦皮費用設定</div>
+
+    <!-- 類別抽成 -->
+    <div class="field section-gap" style="margin-top:0">
+        <label>商品類別（成交抽成）</label>
+        <div class="select-wrap">
+            <select id="categorySelect" onchange="updateCategoryRate()">
+                <option value="">— 請選擇類別 —</option>
+                <optgroup label="時尚">
+                    <option value="6.0">時尚配件</option>
+                    <option value="6.0">手錶</option>
+                    <option value="6.0">男生衣著</option>
+                    <option value="6.0">男鞋</option>
+                    <option value="6.0">女生包包／精品</option>
+                    <option value="6.0">女生衣著</option>
+                    <option value="6.0">女鞋</option>
+                    <option value="6.0">男生包包</option>
+                </optgroup>
+                <optgroup label="汽機車">
+                    <option value="4.5">汽車類－鑰匙圈及鑰匙套</option>
+                    <option value="5.5">汽車類－車外裝飾及百貨</option>
+                    <option value="6.0">汽車類－車內周邊百貨</option>
+                    <option value="6.0">汽車類－其他</option>
+                    <option value="6.0">機車類</option>
+                </optgroup>
+                <optgroup label="居家生活">
+                    <option value="5.5">居家生活－洗衣精、衣物清潔劑</option>
+                    <option value="5.5">居家生活－衛生紙、廚房紙巾</option>
+                    <option value="6.1">居家生活－日用品</option>
+                    <option value="6.0">居家生活－居家裝飾</option>
+                    <option value="6.0">居家生活－居家香氛</option>
+                    <option value="6.0">居家生活－收納</option>
+                    <option value="6.0">居家生活－暖暖包、冷熱水袋</option>
+                    <option value="6.0">居家生活－水杯瓶、餐廚配件</option>
+                    <option value="6.0">居家生活－浴室</option>
+                    <option value="6.0">居家生活－燈具</option>
+                    <option value="6.0">居家生活－節慶、派對用品</option>
+                    <option value="6.0">居家生活－鍋具、餐廚／烘焙</option>
+                    <option value="6.5">居家生活－風水、宗教商品</option>
+                    <option value="6.5">居家生活－其他</option>
+                </optgroup>
+                <optgroup label="戶外與運動">
+                    <option value="5.5">戶外與運動－運動穿戴配件</option>
+                    <option value="6.0">戶外與運動－防水包袋</option>
+                    <option value="6.0">戶外與運動－鞋袋／運動包袋</option>
+                    <option value="6.0">戶外與運動－戶外機能配件</option>
+                    <option value="6.5">戶外與運動－雨衣</option>
+                    <option value="6.5">戶外與運動－健身及運動護具</option>
+                    <option value="6.5">戶外與運動－運動訓練輔助器材</option>
+                    <option value="6.5">戶外與運動－運動帽、戶外帽</option>
+                    <option value="6.5">戶外與運動－碼表及運動測量</option>
+                    <option value="6.5">戶外與運動－雨傘及雨具</option>
+                    <option value="6.0">戶外與運動－運動服飾／戶外服飾</option>
+                    <option value="6.0">戶外與運動－運動鞋／戶外鞋</option>
+                    <option value="6.5">戶外與運動－其他</option>
+                </optgroup>
+                <optgroup label="文具">
+                    <option value="5.5">文具－信紙、信封</option>
+                    <option value="6.0">文具－禮品盒、包裝材料</option>
+                    <option value="6.5">文具－學校、辦公用品</option>
+                    <option value="6.5">文具－文具用品、修正用品</option>
+                    <option value="6.5">文具－筆記本、紙製品</option>
+                    <option value="6.5">文具－美術用具</option>
+                    <option value="6.5">文具－其他</option>
+                </optgroup>
+                <optgroup label="旅行 / 母嬰 / 保健">
+                    <option value="6.0">旅行相關用品／行李箱</option>
+                    <option value="5.5">母嬰用品－嬰幼兒外出用品</option>
+                    <option value="5.5">母嬰用品－嬰幼童家具、寢具</option>
+                    <option value="5.5">母嬰用品－清潔與護膚</option>
+                    <option value="5.5">母嬰用品－玩具</option>
+                    <option value="6.0">母嬰用品－其他</option>
+                    <option value="5.5">保健－口腔照護</option>
+                    <option value="6.0">保健－個人照護</option>
+                    <option value="6.0">保健－保健食品、營養品</option>
+                    <option value="6.0">保健－醫療保健</option>
+                    <option value="6.0">保健－其他</option>
+                </optgroup>
+                <optgroup label="寵物 / 美妝 / 美食">
+                    <option value="6.0">寵物</option>
+                    <option value="5.5">美食伴手禮－主食 / 零食 / 飲品</option>
+                    <option value="6.0">美食伴手禮－便利即食 / 生鮮</option>
+                    <option value="6.0">美妝保養</option>
+                    <option value="6.0">嬰幼兒童裝童鞋</option>
+                </optgroup>
+                <optgroup label="影音 / 電器 / 電腦">
+                    <option value="4.0">影音－綜合擴大機／混音器</option>
+                    <option value="5.5">影音－耳機／耳麥／藍牙耳機</option>
+                    <option value="6.0">影音－麥克風 / 音響 / 其他</option>
+                    <option value="6.0">相機 & 空拍機</option>
+                    <option value="5.5">電腦週邊－儲存裝置</option>
+                    <option value="6.0">電腦週邊－鍵盤滑鼠 / 辦公設備 / 其他</option>
+                    <option value="5.5">家用電器－生活家電 / 廚房家電 / 電視</option>
+                    <option value="6.0">家用電器－居安與家用零件</option>
+                    <option value="7.5">家用電器－投影機 / 其他家電</option>
+                    <option value="5.5">手機平板－穿戴裝置</option>
+                    <option value="7.5">手機平板－手機週邊 / 其他</option>
+                    <option value="6.0">電玩遊戲</option>
+                </optgroup>
+                <optgroup label="愛好與收藏">
+                    <option value="5.5">愛好收藏－組裝模型 / 動漫 / 交通模型</option>
+                    <option value="6.5">愛好收藏－運動周邊 / 偶像周邊 / 其他</option>
+                </optgroup>
+                <optgroup label="票券 / 服務">
+                    <option value="5.5">票券服務－服務</option>
+                    <option value="6.5">票券服務－其他</option>
+                </optgroup>
+            </select>
+        </div>
+        <div class="rate-display" id="rateDisplay" style="display:none">
+            此類別成交抽成：<span class="rate-badge" id="rateBadge">--%</span>
+            <span style="font-size:0.78rem;color:var(--text-sub)">(自動帶入計算)</span>
+        </div>
+    </div>
+
+    <!-- 其他費用 -->
+    <div class="field-grid section-gap">
+        <div class="field">
+            <label>蝦皮自訂優惠（台幣，賣場券等）</label>
+            <input type="number" id="shopeeDiscount" placeholder="0" oninput="updateDiscountedPreview()">
+        </div>
+        <div class="field">
+            <label>包材（台幣）</label>
+            <input type="number" id="packagingCost" placeholder="0">
+        </div>
+        <div class="field">
+            <label>廣告費用（台幣）</label>
+            <input type="number" id="shopeeAds" placeholder="0">
+        </div>
+    </div>
+
+    <!-- 折扣後售價預覽 -->
+    <div id="discountedPreviewWrap" style="display:none;margin-top:10px">
+        <div style="padding:8px 12px;border:1.5px solid var(--highlight-border);border-radius:8px;background:var(--highlight-bg);font-size:0.82rem;">
+            折扣後售價（N欄）：<span id="discountedPreview" style="font-family:'DM Mono',monospace;font-weight:700;color:var(--accent)">0</span> 元
+        </div>
+    </div>
+    </div>
+
+    <!-- 手續費 checkbox -->
+    <div class="section-gap">
+        <div class="checkbox-title">蝦皮手續費項目（請選擇本次上架方式）</div>
+        <div class="checkbox-grid" style="grid-template-columns: 1fr 1fr;">
+            <label class="check-item">
+                <input type="checkbox" id="shopeeEvent">
+                A. 檔期手續費
+            </label>
+            <label class="check-item">
+                <input type="checkbox" id="shopeeNormal">
+                B. 非檔期手續費
+            </label>
+        </div>
+        <div style="margin-top:8px; padding:8px 12px; background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:8px; font-size:0.78rem; color:#15803d;">
+            📐 抽成公式：折扣後售價 × (類別費率 + 非檔期6% / 檔期8%) + (折扣後售價 + 60) × 2.5%
+        </div>
+    </div>
+
+    <button class="calc-btn" onclick="calculate()">▶ 開始計算</button>
+</div>
+
+<!-- Results -->
+<div class="results-wrap" id="resultsWrap">
+
+    <!-- KPI -->
+    <div class="card">
+        <div class="result-section-title">獲利概覽</div>
+        <div class="kpi-grid" id="kpiGrid"></div>
+    </div>
+
+    <!-- 成本明細 -->
+    <div class="card">
+        <div class="result-section-title">成本明細</div>
+        <div id="costDetailsList"></div>
+    </div>
+
+    <!-- 建議售價 -->
+    <div class="card">
+        <div class="result-section-title">建議售價（達 30% 淨利率）</div>
+        <div id="suggestedPriceList"></div>
+    </div>
+
+    <!-- 參考表 -->
+    <div class="card">
+        <div class="result-section-title">參考售價表</div>
+        <div class="ref-grid">
+            <div id="marginReferenceList"></div>
+            <div id="netProfitReferenceList"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function updateConvertedPrice() {
+        const jpy    = parseFloat(document.getElementById('originalPrice').value)        || 0;
+        const rate   = parseFloat(document.getElementById('exchangeRate').value)         || 0;
+        const kg     = parseFloat(document.getElementById('weight').value)               || 0;
+        const intl   = parseFloat(document.getElementById('internationalShipping').value)|| 0;
+        const sys    = parseFloat(document.getElementById('domesticShipping').value)     || 0;
+        const taxOn  = document.getElementById('consumptionTaxCheck').checked;
+
+        // 進貨價日幣→台幣預覽（含消費稅）
+        const el = document.getElementById('convertedPrice');
+        if (jpy && rate) {
+            const twd = Math.round(jpy * rate * (taxOn ? 1.1 : 1));
+            el.textContent = `≈ ${twd.toLocaleString()} 元${taxOn ? '（含10%稅）' : ''}`;
+        } else {
+            el.textContent = '';
+        }
+
+        // 總成本即時預覽
+        const preview = document.getElementById('totalCostPreview');
+        if (jpy && rate) {
+            const jpyTWD = Math.round(jpy * rate * (taxOn ? 1.1 : 1));
+            const tc = jpyTWD + sys + Math.round(kg * intl);
+            preview.textContent = tc.toLocaleString() + ' 元';
+        } else {
+            preview.textContent = '— 元';
+        }
+
+        updateDiscountedPreview();
+    }
+
+    function updateDiscountedPreview() {
+        const set  = parseFloat(document.getElementById('estimatedPrice').value)  || 0;
+        const disc = parseFloat(document.getElementById('shopeeDiscount').value)  || 0;
+        const wrap = document.getElementById('discountedPreviewWrap');
+        const span = document.getElementById('discountedPreview');
+        if (set > 0) {
+            wrap.style.display = 'block';
+            span.textContent = Math.round(set - disc).toLocaleString();
+        } else {
+            wrap.style.display = 'none';
+        }
+    }
+
+    // 綁定事件
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('consumptionTaxCheck').addEventListener('change', updateConvertedPrice);
+    });
+
+    function updateCategoryRate() {
+        const sel = document.getElementById('categorySelect');
+        const display = document.getElementById('rateDisplay');
+        const badge = document.getElementById('rateBadge');
+        if (sel.value) {
+            display.style.display = 'flex';
+            badge.textContent = parseFloat(sel.value).toFixed(1) + '%';
+        } else {
+            display.style.display = 'none';
+        }
+    }
+
+    function row(label, value, highlight) {
+        return `<div class="result-row${highlight ? ' highlight' : ''}">
+            <span class="label">${label}</span>
+            <span class="value">${value}</span>
+        </div>`;
+    }
+
+    function calculate() {
+        const jpy            = parseFloat(document.getElementById('originalPrice').value)        || 0;
+        const rate           = parseFloat(document.getElementById('exchangeRate').value)         || 0;
+        const kg             = parseFloat(document.getElementById('weight').value)               || 0;
+        const intlPerKg      = parseFloat(document.getElementById('internationalShipping').value)|| 0;
+        const sysFee         = parseFloat(document.getElementById('domesticShipping').value)     || 0;
+        const estimatedPrice = parseFloat(document.getElementById('estimatedPrice').value)       || 0;
+        const shopeeDiscount = parseFloat(document.getElementById('shopeeDiscount').value)       || 0;
+        const packagingCost  = parseFloat(document.getElementById('packagingCost').value)        || 0;
+        const shopeeAds      = parseFloat(document.getElementById('shopeeAds').value)            || 0;
+
+        // ── 總成本（完全對齊 Sheet 公式，含消費稅選項）──
+        const taxOn      = document.getElementById('consumptionTaxCheck').checked;
+        const jpyTWD     = Math.round(jpy * rate * (taxOn ? 1.1 : 1));
+        const totalCostBase = jpyTWD + sysFee + Math.round(kg * intlPerKg);
+
+        // ── 類別費率 ──
+        const catRate = (parseFloat(document.getElementById('categorySelect').value) || 0) / 100;
+
+        // ── 折扣後售價（對應 Sheet N欄）──
+        const discountedPrice = estimatedPrice - shopeeDiscount;
+
+        // ── 蝦皮抽成（完全對齊 Sheet 公式）──
+        // 非檔期：ROUND( N*(catRate+6%) + (N+60)*2.5% , 0 )
+        const shopeeNormal = document.getElementById('shopeeNormal').checked
+            ? Math.round(discountedPrice * (catRate + 0.06) + (discountedPrice + 60) * 0.025)
+            : 0;
+        // 檔期：ROUND( N*(catRate+8%) + (N+60)*2.5% , 0 )
+        const shopeeEvent = document.getElementById('shopeeEvent').checked
+            ? Math.round(discountedPrice * (catRate + 0.08) + (discountedPrice + 60) * 0.025)
+            : 0;
+
+        // ── 毛利／淨利（對齊 Sheet）──
+        // 毛利 = 折扣後售價 - 總成本 - 蝦皮抽成
+        // 淨利 = 毛利 - 包材 - 廣告
+        const grossProfitNormal = discountedPrice - totalCostBase - shopeeNormal;
+        const grossProfitEvent  = discountedPrice - totalCostBase - shopeeEvent;
+        const netProfitNormal   = grossProfitNormal - packagingCost - shopeeAds;
+        const netProfitEvent    = grossProfitEvent  - packagingCost - shopeeAds;
+        const grossMarginNormal = discountedPrice > 0 ? (grossProfitNormal / discountedPrice) * 100 : 0;
+        const grossMarginEvent  = discountedPrice > 0 ? (grossProfitEvent  / discountedPrice) * 100 : 0;
+        const netMarginNormal   = discountedPrice > 0 ? (netProfitNormal   / discountedPrice) * 100 : 0;
+        const netMarginEvent    = discountedPrice > 0 ? (netProfitEvent    / discountedPrice) * 100 : 0;
+
+        const showNormal = document.getElementById('shopeeNormal').checked;
+        const showEvent  = document.getElementById('shopeeEvent').checked;
+
+        // ── 渲染 ──
+        document.getElementById('resultsWrap').style.display = 'block';
+        document.getElementById('resultsWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // KPI
+        let kpiHtml = '';
+        if (showNormal) {
+            const gc = grossMarginNormal >= 0 ? 'positive' : 'negative';
+            const nc = netMarginNormal   >= 0 ? 'positive' : 'negative';
+            kpiHtml += `
+            <div class="kpi-block ${gc}">
+                <div class="kpi-label">毛利率（非檔期）</div>
+                <div class="kpi-value">${grossMarginNormal.toFixed(2)}%</div>
+                <div class="kpi-sub">毛利 ${Math.round(grossProfitNormal).toLocaleString()} 元</div>
+            </div>
+            <div class="kpi-block ${nc}">
+                <div class="kpi-label">淨利率（非檔期）</div>
+                <div class="kpi-value">${netMarginNormal.toFixed(2)}%</div>
+                <div class="kpi-sub">淨利 ${Math.round(netProfitNormal).toLocaleString()} 元</div>
+            </div>`;
+        }
+        if (showEvent) {
+            const gc = grossMarginEvent >= 0 ? 'positive' : 'negative';
+            const nc = netMarginEvent   >= 0 ? 'positive' : 'negative';
+            kpiHtml += `
+            <div class="kpi-block ${gc}">
+                <div class="kpi-label">毛利率（檔期）</div>
+                <div class="kpi-value">${grossMarginEvent.toFixed(2)}%</div>
+                <div class="kpi-sub">毛利 ${Math.round(grossProfitEvent).toLocaleString()} 元</div>
+            </div>
+            <div class="kpi-block ${nc}">
+                <div class="kpi-label">淨利率（檔期）</div>
+                <div class="kpi-value">${netMarginEvent.toFixed(2)}%</div>
+                <div class="kpi-sub">淨利 ${Math.round(netProfitEvent).toLocaleString()} 元</div>
+            </div>`;
+        }
+        if (!showNormal && !showEvent) {
+            kpiHtml = `<div style="grid-column:1/-1;text-align:center;color:var(--text-sub);font-size:0.85rem;padding:12px">
+                請勾選上方手續費項目以顯示結果</div>`;
+        }
+        document.getElementById('kpiGrid').innerHTML = kpiHtml;
+        document.getElementById('kpiGrid').style.gridTemplateColumns =
+            (showNormal && showEvent) ? '1fr 1fr 1fr 1fr' : '1fr 1fr';
+
+        // 成本明細
+        let html = '';
+        html += row(`進貨價格 ¥${jpy.toLocaleString()} × ${rate}${taxOn ? ' × 1.1（含稅）' : ''}`, `${jpyTWD.toLocaleString()} 元`);
+        html += row('系統費用 + 台灣運費', `${sysFee.toLocaleString()} 元`);
+        html += row('國際運費', `${kg} kg × ${intlPerKg} = ${Math.round(kg*intlPerKg).toLocaleString()} 元`);
+        html += row('總成本', `${totalCostBase.toLocaleString()} 元`, true);
+        html += row('設定售價', `${estimatedPrice.toLocaleString()} 元`);
+        if (shopeeDiscount > 0) html += row('蝦皮自訂優惠', `- ${shopeeDiscount.toLocaleString()} 元`);
+        html += row('折扣後售價', `${Math.round(discountedPrice).toLocaleString()} 元`, true);
+        if (showNormal) html += row(`蝦皮抽成（非檔期）= N×(${(catRate*100).toFixed(1)}%+6%)+(N+60)×2.5%`, `${shopeeNormal.toLocaleString()} 元`);
+        if (showEvent)  html += row(`蝦皮抽成（檔期）= N×(${(catRate*100).toFixed(1)}%+8%)+(N+60)×2.5%`, `${shopeeEvent.toLocaleString()} 元`);
+        if (packagingCost > 0) html += row('包材', `${packagingCost.toLocaleString()} 元`);
+        if (shopeeAds > 0)     html += row('廣告費用', `${shopeeAds.toLocaleString()} 元`);
+        document.getElementById('costDetailsList').innerHTML = html;
+
+        // 建議售價（30% 淨利率，以非檔期反推）
+        // netMargin = (N - totalCostBase - [N*(catRate+0.06)+(N+60)*0.025] - pkg - ads) / N = 0.30
+        // N*(1 - catRate - 0.085) - 1.5 - totalCostBase - pkg - ads = 0.30*N
+        // N*(0.615 - catRate) = totalCostBase + pkg + ads + 1.5
+        const fixedCosts = totalCostBase + packagingCost + shopeeAds + 1.5;
+        const coeff = 0.615 - catRate;
+        const sugN = coeff > 0 ? fixedCosts / coeff : 0;
+        const sugSet = Math.round(sugN + shopeeDiscount);
+
+        document.getElementById('suggestedPriceList').innerHTML =
+            row('建議設定售價（達 30% 淨利率，以非檔期計算）', `${sugSet.toLocaleString()} 元`, true) +
+            `<div style="font-size:0.75rem;color:var(--text-sub);padding:4px 4px 0">
+                折扣後售價需達 ${Math.round(sugN).toLocaleString()} 元
+            </div>`;
+
+        // 參考表（以非檔期，折扣後售價反推→換算設定售價）
+        const levels = [20, 25, 30, 35, 40, 45, 50];
+
+        // 毛利：N*(1-catRate-0.085) - 1.5 - totalCostBase = m% * N
+        // N*(1-catRate-0.085-m%) = totalCostBase + 1.5
+        let mHtml = `<div class="ref-sub-title">毛利率參考（非檔期）</div>`;
+        levels.forEach(m => {
+            const c = 1 - catRate - 0.085 - m/100;
+            const n = c > 0 ? (totalCostBase + 1.5) / c : 0;
+            mHtml += row(`${m}% → 設定售價`, `${Math.round(n + shopeeDiscount).toLocaleString()} 元`);
+        });
+        document.getElementById('marginReferenceList').innerHTML = mHtml;
+
+        // 淨利：N*(1-catRate-0.085-m%) = totalCostBase + pkg + ads + 1.5
+        let nHtml = `<div class="ref-sub-title">淨利率參考（非檔期）</div>`;
+        levels.forEach(m => {
+            const c = 1 - catRate - 0.085 - m/100;
+            const n = c > 0 ? (totalCostBase + packagingCost + shopeeAds + 1.5) / c : 0;
+            nHtml += row(`${m}% → 設定售價`, `${Math.round(n + shopeeDiscount).toLocaleString()} 元`);
+        });
+        document.getElementById('netProfitReferenceList').innerHTML = nHtml;
+    }
+</script>
+</body>
+</html>
